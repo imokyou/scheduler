@@ -1,0 +1,41 @@
+# CREATE DATABASE `scheduler` DEFAULT CHARSET utf8 COLLATE utf8_general_ci;
+
+CREATE TABLE IF NOT EXISTS `user` (
+    `id` INT(11) NOT NULL AUTO_INCREMENT,
+    `username` VARCHAR(256) NOT NULL,
+    `email` VARCHAR(512) NOT NULL,
+    `password` VARCHAR(512) NOT NULL,
+    `is_superuser` INT(11) NOT NULL DEFAULT '0',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`) 
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+CREATE TABLE IF NOT EXISTS `scheduler` (
+    `id` INT(11) NOT NULL AUTO_INCREMENT,
+    `title` VARCHAR(512) NOT NULL,
+    `uid` INT(11) NOT NULL,
+    `stype` VARCHAR(256) NOT NULL,
+    `startdate` DATETIME,
+    `remaindays` INT(11) NOT NULL DEFAULT '3',
+    `complete_percent` DECIMAL(10, 2) DEFAULT '0',
+    `items` TEXT,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`) 
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+CREATE TABLE IF NOT EXISTS `notify_log` (
+    `id` INT(11) NOT NULL AUTO_INCREMENT,
+    `uid` INT(11) NOT NULL,
+    `sid` INT(11) NOT NULL DEFAULT '0',
+    `content` TEXT,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`) 
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
