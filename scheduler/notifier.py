@@ -14,33 +14,56 @@ class Notifier(object):
         self.sender = Sender()
 
     def run(self):
-        startdate = (datetime.utcnow() + timedelta(hours=8)).date()
-        enddate = (datetime.utcnow() + timedelta(hours=32)).date()
-        records = self.mgr.get_schedulers({'startdate': startdate, 'enddate': enddate}, desc=False)
-        for r in records:
-            if r['startdate'].strftime('%Y%m%d') == startdate.strftime('%Y%m%d'):
-                complete_percent, msg = self.gen_msg(r)
-                msg = '今日({}) '.format(r['startdate'].strftime('%Y%m%d')) + msg
-                print msg
-                self.sender.send(msg)
-                sleep(10)
+        while True:
+            print 'waiting to send message.'
+            self.scheduler_morning()
+            self.scheduler_today_summary()
+            sleep(60*5)
 
-            elif r['startdate'].strftime('%Y%m%d') == enddate.strftime('%Y%m%d'):
-                complete_percent, msg = self.gen_msg(r)
+    def scheduler_morning(self):
+        '''
+        早上7点发送 UTC 23点
+        '''
+        currutc = datetime.utcnow()
+        if currutc.hour != 23:
+            return None
+        sdate = (currutc + timedelta(hours=8)).date()
+        record = self.mgr.get_scheduler({'startdate': sdate, 'enddate': sdate})
+        if record['notify_day']:
+            return None
+        complete_percent, msg = self.gen_msg(record)
+        msg = '今天(%s) %s' % (record['startdate'].strftime('%Y%m%d'), msg)
+        self.send(msg)
 
-                print '明日({}) '.format(r['startdate'].strftime('%Y%m%d')) + msg
-                self.sender.send('明日({}) '.format(r['startdate'].strftime('%Y%m%d')) + msg)
-                sleep(10)
+        self.mgr.update_scheduler({'id': record['id'], 'notify_day': 1})
 
-                msg = '今日({}) '.format(r['startdate'].strftime('%Y%m%d')) + msg
-                tomorro_morning = datetime.utcnow() + timedelta(hours=10)
-                sender.delay_send(content=msg, time=tomorro_morning, title=r['title'], remind=timedelta(minutes=1))
-                sleep(10)
-        print 'Done!!!'
+    def scheduler_today_summary(self):
+        '''
+        晚上21点发送， UTC 13点
+        '''
+        currutc = datetime.utcnow()
+        if currutc.hour != 13:
+            return None
+        sdate = (currutc + timedelta(hours=8)).date()
+        record = self.mgr.get_scheduler({'startdate': sdate, 'enddate': sdate})
+        if record['notify_night']:
+            return None
+        complete_percent, msg = self.gen_msg(record)
+        msg = '今天(%s)总结 %s' % (record['startdate'].strftime('%Y%m%d'), msg)
+        self.send(msg)
+
+        self.mgr.update_scheduler({'id': record['id'], 'notify_night': 1})
+
+        # 再把明天的计划也发一发
+        sdate = (currutc + timedelta(hours=32)).date()
+        record = self.mgr.get_scheduler({'startdate': sdate, 'enddate': sdate})
+        complete_percent, msg = self.gen_msg(record)
+        msg = '明天(%s) %s' % (record['startdate'].strftime('%Y%m%d'), msg)
+        self.send(msg)
 
     def gen_msg(self, record):
         complete_percent = 0
-        encourage = '加油加油!!!'
+        encourage = '还有训练未完成,加油加油!!!'
         msg = '{},完成度{},{}\n'
 
         todonum = 0
@@ -63,16 +86,23 @@ class Notifier(object):
         except:
             complete_percent = 0
         if complete_percent >= 90:
-            encourage = 'U R 666!!!'
+            encourage = '完成所有训练. U R 666!!!'
         msg = msg.format(record['title'], complete_percent, encourage)
 
         return complete_percent, msg
+
+    def send(self, msg):
+        print msg
+        self.sender.send(msg)
+
+    def send_delay(self, title, msg, delaytime):
+        print msg
+        self.sender.delay_send(content=msg, time=delaytime, title=title, remind=timedelta(minutes=1))
 
 
 if __name__ == '__main__':
     ner = Notifier()
     currtime = datetime.utcnow() + timedelta(hours=8)
-    stype = ['keepfit', 'work', 'stady', 'life']
     # ner.send('这是测试信息 >>>>>> {}'.format(currtime.strftime('%Y-%m-%d %H:%M:%S')))
     ner.run()
     '''

@@ -10,7 +10,7 @@ class WechatServer(object):
         self.bot = None
 
     def listen(self):
-        self.bot = Bot('bot.pkl', console_qr=True)
+        self.bot = Bot(cache_path=True, console_qr=True)
         listen(self.bot)
 
     def run(self):
