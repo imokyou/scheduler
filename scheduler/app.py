@@ -1,7 +1,8 @@
 # coding=utf8
+import traceback
 import json
 from datetime import datetime, timedelta
-from flask import Flask,request, render_template, redirect
+from flask import Flask,request, render_template, redirect, jsonify
 from models import DbMgr
 from settings import *
 
@@ -9,107 +10,111 @@ app = Flask(__name__)
 mgr = DbMgr()
 
 
+def normal_resp(data=[]):
+    ret = {'code': 0, 'data': data}
+    return jsonify(ret)
+
+
+def error_resp(msg):
+    ret = {'code': -1, 'msg': msg}
+    return jsonify(ret)
+
+
 @app.route('/')
 def index():
-    return render_template('dashboard.html')
+    return normal_resp()
 
 
-@app.route('/login')
-def login():
-    if request.method == 'POST':
-        pass
-    return render_template('login.html')
+@app.route('/api/schedules/<stype>')
+def list(stype):
+    params = {
+        'stype': stype
+    }
+    records = mgr.get_schedulers(params)
+    return normal_resp(records)
 
 
-@app.route('/logout')
-def logout():
-    return "Logout"
+@app.route('/api/schedule/<int:sid>')
+def detail(sid):
+    params = {
+        'id': sid
+    }
+    record = mgr.get_scheduler(params)
+    return normal_resp(record)
 
 
-@app.route('/schedule/list/<stype>')
-def list(stype=''):
-    records = mgr.get_schedulers({'stype': stype})
-    return render_template('list.html', records=records, stype=stype)
-
-
-@app.route('/schedule/detail/<int:sid>')
-def detail(sid=''):
-    record = mgr.get_scheduler({'sid': sid})
-    return render_template('detail.html', record=record)
-
-
-@app.route('/schedule/add', methods=['GET', 'POST'])
+@app.route('/api/schedule/add')
 def add():
-    if request.method == 'POST':
-        sid = request.form['sid']
-        user_id = request.form['uid']
-        title = request.form['title']
-        stype = request.form['stype']
-        startdate = request.form['startdate']
-        remaindays = request.form['remaindays']
-        todolist = {
-            'item1': {'content': request.form['item1'], 'done': 1 if request.form.get('item1_done', '') else 0},
-            'item2': {'content': request.form['item2'], 'done': 1 if request.form.get('item2_done', '') else 0},
-            'item3': {'content': request.form['item3'], 'done': 1 if request.form.get('item3_done', '') else 0},
-            'item4': {'content': request.form['item4'], 'done': 1 if request.form.get('item4_done', '') else 0},
-            'item5': {'content': request.form['item5'], 'done': 1 if request.form.get('item5_done', '') else 0},
-            'item6': {'content': request.form['item6'], 'done': 1 if request.form.get('item6_done', '') else 0},
-            'item7': {'content': request.form['item7'], 'done': 1 if request.form.get('item7_done', '') else 0},
-            'item8': {'content': request.form['item8'], 'done': 1 if request.form.get('item8_done', '') else 0},
-            'item9': {'content': request.form['item9'], 'done': 1 if request.form.get('item9_done', '') else 0},
-            'item10': {'content': request.form['item10'], 'done': 1 if request.form.get('item10_done', '') else 0}
-        }
+    try:
+        if request.method == 'POST':
+            title = request.form['title']
+            stype = request.form['stype']
+            startdate = request.form['startdate']
+            remaindays = request.form['remaindays']
+            todolist = request.form['todolist']
 
-        donenum = 0
-        todonum = 0
-        for k, v in enumerate(todolist.values()):
-            if v['content']:
-                todonum = todonum + 1
-                if v['done'] == 1:
-                    donenum = donenum + 1
-        if not donenum or not todonum:
-            complete_percent = 0
-        else:
-            complete_percent = (donenum*100.0)/todonum
+            if not startdate:
+                startdate = datetime.utcnow() + timedelta(hours=8)
+                startdate = startdate.strftime('%Y%m%d')
+            else:
+                startdate = datetime.strptime(startdate, '%Y%m%d')
 
-        if not startdate:
-            startdate = datetime.utcnow() + timedelta(hours=8)
-            startdate = startdate.strftime('%Y%m%d')
-        else:
-            startdate = datetime.strptime(startdate, '%Y%m%d')
-        record = {
-            'id': sid,
-            'user_id': user_id,
-            'title': title,
-            'stype': stype,
-            'user_id': 1,
-            'complete_percent': complete_percent,
-            'startdate': startdate,
-            'remaindays': remaindays,
-            'items': json.dumps(todolist)
-        }
-        if not sid:
-            del record['id']
             remaindays = int(record['remaindays'])
             for i in xrange(remaindays):
-                record['remaindays'] = 1
-                record['startdate'] = (startdate + timedelta(days=i)).strftime('%Y%m%d')
+                record = {
+                    'user_id': 1,
+                    'title': title,
+                    'stype': stype,
+                    'complete_percent': 0,
+                    'startdate': (startdate + timedelta(days=i)).strftime('%Y%m%d'),
+                    'remaindays': 1,
+                    'items': json.dumps(todolist)
+                }
                 mgr.add_scheduler(record)
-        else:
-            record['remaindays'] = 1
-            mgr.update_scheduler(record)
-        return redirect('/schedule/list/{}'.format(stype))
-    return render_template('add.html')
+            return normal_resp()
+    except:
+        traceback.print_exc()
+        return error_resp('something error')
+    return normal_resp()
 
 
-@app.route('/schedule/achieve')
-def achieve():
-    return "Schedule achieve"
+@app.route('/api/schedule/update/<int:sid>')
+def update(sid):
+    try:
+        if request.method == 'POST':
+            sid = sid
+            title = request.form['title']
+            stype = request.form['stype']
+            startdate = request.form['startdate']
+            todolist = request.form['todolist']
 
+            donenum = 0
+            todonum = 0
+            for k, v in enumerate(json.loads(todolist).values()):
+                if v['content']:
+                    todonum = todonum + 1
+                    if v['done'] == 1:
+                        donenum = donenum + 1
+            if not donenum or not todonum:
+                complete_percent = 0
+            else:
+                complete_percent = (donenum*100.0)/todonum
 
-@app.route('/schedule/delete')
-def delete():
-    return "Schedule delete"
+            record = {
+                'id': sid,
+                'title': title,
+                'stype': stype,
+                'startdate': startdate,
+                'complete_percent': complete_percent,
+                'items': todolist
+            }
+            self.mgr.update_scheduler(record)
+
+            return normal_resp()
+    except:
+        traceback.print_exc()
+        return error_resp('something error')
+    return normal_resp()
 
 
 if __name__ == '__main__':
