@@ -2,19 +2,14 @@
 from __future__ import unicode_literals
 from wxpy import *
 from wechat_sender import *
+from settings import *
 
 
 class WechatServer(object):
 
-    def __init__(self):
-        self.bot = None
-
-    def listen(self):
-        self.bot = Bot(cache_path=True, console_qr=True)
-        listen(self.bot)
-
     def run(self):
-        self.listen()
+        bot = Bot(cache_path=True, console_qr=True)
+        listen(bot, token=WECHAT_TOKEN)
 
 
 if __name__ == '__main__':
