@@ -47,7 +47,7 @@ class Messenger(object):
         晚上21点发送， UTC 13点
         '''
         currutc = datetime.utcnow()
-        if currutc.hour != 7:
+        if currutc.hour != 13:
             return None
         sdate = (currutc + timedelta(hours=8)).date()
         record = self.mgr.get_scheduler({'startdate': sdate, 'enddate': sdate})
