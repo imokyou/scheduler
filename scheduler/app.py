@@ -89,6 +89,7 @@ def add():
             'items': json.dumps(todolist)
         }
         if not sid:
+            del record['id']
             remaindays = int(record['remaindays'])
             for i in xrange(remaindays):
                 record['remaindays'] = 1
