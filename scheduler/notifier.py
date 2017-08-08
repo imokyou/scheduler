@@ -64,7 +64,7 @@ class Notifier(object):
     def gen_msg(self, record):
         complete_percent = 0
         encourage = '还有训练未完成,加油加油!!!'
-        msg = '{},完成度{},{}\n'
+        msg = '{},完成度{}%.{}\n'
 
         todonum = 0
         donenum = 0
