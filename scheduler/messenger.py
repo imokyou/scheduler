@@ -23,7 +23,7 @@ class Messenger(object):
 
     def deliver(self, msg, to=WECHAT_RECEIVER):
         print to, msg.encode('utf8')
-        # self.sender.send_to(msg.encode('utf8'), to)
+        self.sender.send_to(msg.encode('utf8'), to)
 
     def keepfit_morning(self):
         '''
