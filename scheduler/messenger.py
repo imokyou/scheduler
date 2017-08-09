@@ -47,10 +47,10 @@ class Messenger(object):
         晚上21点发送， UTC 13点
         '''
         currutc = datetime.utcnow()
-        if currutc.hour != 15:
+        if currutc.hour != 13:
             return None
         sdate = (currutc + timedelta(hours=8)).date()
-        record = self.mgr.get_scheduler({'startdate': sdate, 'enddate': sdate, 'stype': 'keepfits'})
+        record = self.mgr.get_scheduler({'startdate': sdate, 'enddate': sdate, 'stype': 'keepfit'})
         if record and not record['notify_night']:
             msg = self.gen_msg(record)
             msg = u'今天训练总结\n%s' % msg
