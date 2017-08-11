@@ -12,13 +12,16 @@ class Messenger(object):
 
     def __init__(self):
         self.sender = Sender(token=WECHAT_TOKEN)
+        self.mgr = None
+
+    def get_conn(self):
         self.mgr = DbMgr()
 
     def run(self):
         while True:
             print u'waiting to send message.'
-            self.keepfit_morning()
-            self.keepfit_today_summary()
+            self.scheduler_morning()
+            self.scheduler_today_summary()
             sleep(60*5)
 
     def deliver(self, msg, to=WECHAT_RECEIVER):
@@ -32,6 +35,8 @@ class Messenger(object):
         currutc = datetime.utcnow()
         if currutc.hour != 23:
             return None
+
+        self.get_conn()
         sdate = (currutc + timedelta(hours=8)).date()
         record = self.mgr.get_scheduler({'startdate': sdate, 'enddate': sdate, 'stype': 'keepfit'})
         if not record or record['notify_day']:
@@ -49,6 +54,8 @@ class Messenger(object):
         currutc = datetime.utcnow()
         if currutc.hour != 13:
             return None
+
+        self.get_conn()
         sdate = (currutc + timedelta(hours=8)).date()
         record = self.mgr.get_scheduler({'startdate': sdate, 'enddate': sdate, 'stype': 'keepfit'})
         if record and not record['notify_night']:

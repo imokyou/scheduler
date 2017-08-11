@@ -21,3 +21,7 @@ user = ptserver
 autostart=true
 redirect_stderr=true
 stdout_logfile = /var/log/supervisor/scheduler.log
+
+
+
+/home/ptserver/.virtualenvs/scheduler/bin/python /home/ptserver/www/scheduler/scheduler/messenger.py

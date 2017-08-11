@@ -66,7 +66,7 @@ class Scheduler(BaseModel):
             'stype': self.stype,
             'startdate': self.startdate,
             'remaindays': self.remaindays,
-            'complete_percent': self.complete_percent,
+            'complete_percent': float(self.complete_percent),
             'todolist': json.loads(self.items),
             'notify_day': self.notify_day,
             'notify_night': self.notify_night,
@@ -116,6 +116,18 @@ class DbMgr(object):
             self.session.close()
         return None
 
+    def delete_schedule_by_id(self, id):
+        try:
+            self.session.query(Scheduler).filter(Scheduler.id == id).delete()
+            self.session.commit()
+            return True
+        except:
+            traceback.print_exc()
+            self.session.rollback()
+        finally:
+            self.session.close()
+        return None
+
     def get_scheduler(self, params={}):
         ret = self.get_schedulers(params)
         if ret:
@@ -126,8 +138,8 @@ class DbMgr(object):
         try:
             ret = []
             q = self.session.query(Scheduler, User).filter(Scheduler.user_id == User.id)
-            if params.get('sid', 0):
-                q = q.filter(Scheduler.id == params['sid'])
+            if params.get('id', 0):
+                q = q.filter(Scheduler.id == params['id'])
             if params.get('uid', 0):
                 q = q.filter(Scheduler.uid == params['uid'])
             if params.get('stype', ''):
