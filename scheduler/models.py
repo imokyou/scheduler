@@ -116,6 +116,18 @@ class DbMgr(object):
             self.session.close()
         return None
 
+    def delete_schedule_by_id(self, id):
+        try:
+            self.session.query(Scheduler).filter(Scheduler.id == id).delete()
+            self.session.commit()
+            return True
+        except:
+            traceback.print_exc()
+            self.session.rollback()
+        finally:
+            self.session.close()
+        return None
+
     def get_scheduler(self, params={}):
         ret = self.get_schedulers(params)
         if ret:

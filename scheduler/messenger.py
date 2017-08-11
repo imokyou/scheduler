@@ -12,6 +12,9 @@ class Messenger(object):
 
     def __init__(self):
         self.sender = Sender(token=WECHAT_TOKEN)
+        self.mgr = None
+
+    def get_conn(self):
         self.mgr = DbMgr()
 
     def run(self):
@@ -32,6 +35,8 @@ class Messenger(object):
         currutc = datetime.utcnow()
         if currutc.hour != 23:
             return None
+
+        self.get_conn()
         sdate = (currutc + timedelta(hours=8)).date()
         record = self.mgr.get_scheduler({'startdate': sdate, 'enddate': sdate})
         if record['notify_day']:
@@ -49,9 +54,11 @@ class Messenger(object):
         currutc = datetime.utcnow()
         if currutc.hour != 13:
             return None
+
+        self.get_conn()
         sdate = (currutc + timedelta(hours=8)).date()
         record = self.mgr.get_scheduler({'startdate': sdate, 'enddate': sdate})
-        if record['notify_night']:
+        if not record or record['notify_night']:
             return None
         msg = self.gen_msg(record)
         msg = u'今天(%s)总结 %s' % (record['startdate'].strftime('%Y%m%d'), msg)
