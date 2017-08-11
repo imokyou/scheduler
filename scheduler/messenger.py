@@ -20,8 +20,8 @@ class Messenger(object):
     def run(self):
         while True:
             print u'waiting to send message.'
-            self.scheduler_morning()
-            self.scheduler_today_summary()
+            self.keepfit_morning()
+            self.keepfit_today_summary()
             sleep(60*5)
 
     def deliver(self, msg, to=WECHAT_RECEIVER):
