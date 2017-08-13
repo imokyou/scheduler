@@ -14,7 +14,7 @@ class Messenger(object):
     def __init__(self):
         self.sender = Sender(token=WECHAT_TOKEN)
         self.mgr = None
-        slef.touch_sended = []
+        self.touch_sended = []
 
     def get_conn(self):
         self.mgr = DbMgr()
