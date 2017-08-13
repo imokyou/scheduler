@@ -89,7 +89,7 @@ class Messenger(object):
         if currutc.hour == 15:
             self.touch_sended = []
 
-        if currutc.hour not in self.is_send and currutc.hour in sendhours:
+        if currutc.hour not in self.touch_sended and currutc.hour in sendhours:
             self.deliver(msg)
             self.touch_sended.append(currutc.hour)
 
