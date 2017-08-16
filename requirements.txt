@@ -1,8 +1,0 @@
-Flask==0.12.2
-Jinja2==2.9.6
-redis==2.10.5
-requests==2.18.1
-gunicorn==19.7.1
-wechat-sender==0.1.4
-SQLAlchemy==1.1.13
-PyMySQL==0.7.11
