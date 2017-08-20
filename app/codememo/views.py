@@ -1,15 +1,17 @@
 # coding=utf8
 import traceback
-import json
-from datetime import datetime
+from django.views.decorators.csrf import csrf_exempt
+from config import errors
 from lib import utils
 from dbmodel.models import CodeMemo
 
 
+@csrf_exempt
 def test(request):
     return utils.NormalResp()
 
 
+@csrf_exempt
 def get_codes(request):
     try:
         p = request.GET.get('p', 1)
@@ -38,6 +40,7 @@ def get_codes(request):
         return utils.ErrResp(errors.SthWrong)
 
 
+@csrf_exempt
 def add_codememo(request):
     try:
         ctype = request.POST.get('ctype', '')
@@ -58,13 +61,14 @@ def add_codememo(request):
         return utils.ErrResp(errors.SthWrong)
 
 
+@csrf_exempt
 def update_codememo(request, id):
     try:
         try:
             code = CodeMemo.objects.get(id=id)
         except:
             return utils.ErrResp(errors.DataNotExists)
-        
+
         code.ctype = request.POST.get('ctype', code.ctype)
         code.description = request.POST.get('description', code.description)
         code.content = request.POST.get('content', code.content)
@@ -75,6 +79,7 @@ def update_codememo(request, id):
         return utils.ErrResp(errors.SthWrong)
 
 
+@csrf_exempt
 def delete_codememo(request, id):
     try:
         try:
@@ -86,7 +91,3 @@ def delete_codememo(request, id):
     except:
         traceback.print_exc()
         return utils.ErrResp(errors.SthWrong)
-
-
-
-

@@ -2,21 +2,27 @@
 import traceback
 import json
 from datetime import datetime
+from django.views.decorators.csrf import csrf_exempt
 from config import errors
 from lib import utils
 from dbmodel.models import Schedule, ScheduleConfig
 
 
+@csrf_exempt
 def test(request):
     return utils.NormalResp()
 
 
+@csrf_exempt
 def get_schedules(request):
     try:
         p = int(request.GET.get('p', 1))
         n = int(request.GET.get('n', 7))
+        stype = request.GET.get('stype', '')
 
         q = Schedule.objects
+        if stype:
+            q = q.filter(stype=stype)
         results = q.all()[n*(p-1): n*p]
         data = []
         for r in results:
@@ -44,6 +50,7 @@ def get_schedules(request):
         return utils.ErrResp(errors.SthWrong)
 
 
+@csrf_exempt
 def get_schedule(request, id):
     try:
         try:
@@ -73,6 +80,7 @@ def get_schedule(request, id):
         return utils.ErrResp(errors.SthWrong)
 
 
+@csrf_exempt
 def add_schedule(request):
     try:
         stype = request.POST.get('stype', '')
@@ -81,12 +89,12 @@ def add_schedule(request):
         targets = request.POST.get('targets', '')
         if not stype or not subject or not sdate or not targets:
             return utils.ErrResp(errors.ArgMis)
-        
+
         try:
             sdate = datetime.strptime(sdate, '%Y-%m-%d')
         except:
             return utils.ErrResp(errors.ArgFormatInvalid)
-        
+
         try:
             targets = json.loads(targets)
         except:
@@ -105,13 +113,14 @@ def add_schedule(request):
         return utils.ErrResp(errors.SthWrong)
 
 
+@csrf_exempt
 def update_schedule(request, id):
     try:
         try:
             schedule = Schedule.objects.get(id=id)
         except:
             return utils.ErrResp(errors.DataNotExists)
-        
+
         schedule.stype = request.POST.get('stype', schedule.stype)
         schedule.subject = request.POST.get('subject', schedule.subject)
         schedule.targets = request.POST.get('targets', schedule.targets)
@@ -128,6 +137,7 @@ def update_schedule(request, id):
         return utils.ErrResp(errors.SthWrong)
 
 
+@csrf_exempt
 def delete_schedule(request, id):
     try:
         try:
@@ -141,6 +151,7 @@ def delete_schedule(request, id):
         return utils.ErrResp(errors.SthWrong)
 
 
+@csrf_exempt
 def schedule_configs(request, schedule_id):
     try:
         q = ScheduleConfig.objects.filter(schedule_id=int(schedule_id))
@@ -160,13 +171,14 @@ def schedule_configs(request, schedule_id):
         return utils.ErrResp(errors.SthWrong)
 
 
+@csrf_exempt
 def add_schedule_config(request, schedule_id):
     try:
         key = request.POST.get('key', '')
         value = request.POST.get('value', '')
         if not key or not value:
             return utils.ErrResp(errors.ArgMis)
-    
+
         s = ScheduleConfig(
             schedule_id=schedule_id,
             key=key,
@@ -179,13 +191,14 @@ def add_schedule_config(request, schedule_id):
         return utils.ErrResp(errors.SthWrong)
 
 
+@csrf_exempt
 def update_schedule_config(request, schedule_id, id):
     try:
         try:
             sconfig = ScheduleConfig.objects.get(schedule_id=int(schedule_id), id=int(id))
         except:
             return utils.ErrResp(errors.DataNotExists)
-        
+
         sconfig.key = request.POST.get('key', sconfig.key)
         sconfig.value = request.POST.get('value', sconfig.value)
         sconfig.save()
@@ -195,6 +208,7 @@ def update_schedule_config(request, schedule_id, id):
         return utils.ErrResp(errors.SthWrong)
 
 
+@csrf_exempt
 def delete_schedule_config(request, schedule_id, id):
     try:
         try:
@@ -206,5 +220,3 @@ def delete_schedule_config(request, schedule_id, id):
     except:
         traceback.print_exc()
         return utils.ErrResp(errors.SthWrong)
-
-
