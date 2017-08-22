@@ -8,6 +8,20 @@ from lib import utils
 from dbmodel.models import Schedule, ScheduleConfig
 
 
+def fullfill_targets(targets):
+    try:
+        ret = []
+        for x in xrange(0, 10):
+            try:
+                ret.append(targets[x])
+            except IndexError:
+                ret.append({'content': '', 'done': 0})
+    except:
+        traceback.print_exc()
+        ret = targets
+    return ret
+
+
 @csrf_exempt
 def test(request):
     return utils.NormalResp()
@@ -43,6 +57,7 @@ def get_schedules(request):
                 info['targets'] = json.loads(r.targets)
             except:
                 pass
+            info['targets'] = fullfill_targets(info['targets'])
             data.append(info)
         return utils.NormalResp(data)
     except:
@@ -74,6 +89,7 @@ def get_schedule(request, id):
             data['targets'] = json.loads(s.targets)
         except:
             pass
+        data['targets'] = fullfill_targets(data['targets'])
         return utils.NormalResp(data)
     except:
         traceback.print_exc()
